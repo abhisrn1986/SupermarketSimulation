@@ -7,7 +7,7 @@ import logging
 ##################
 # Authentication #
 ##################
-BEARER_TOKEN = "AAAAAAAAAAAAAAAAAAAAAIaAZAEAAAAAIz%2Fcuc5Z3tIBbMb8miYAcTjnRQM%3Dnlv8yJsMpKiWXboX8CGNZIvMIUUabUGIZin7MQjJz7y29ImMHA"
+BEARER_TOKEN = "''''"
 
 
 #Mongo db 

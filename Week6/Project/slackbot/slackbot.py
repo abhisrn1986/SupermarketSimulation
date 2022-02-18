@@ -4,7 +4,7 @@ import time
 from sqlalchemy import create_engine
 
 webhook_url = (
-    "https://hooks.slack.com/services/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"
+    "'''''"
 )
 
 #connectting postgresql
