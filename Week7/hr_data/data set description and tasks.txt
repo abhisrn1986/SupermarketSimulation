@@ -1,0 +1,38 @@
+The dataset contains daily visitor data from a shopping attraction.
+For some features, no description is available, so they may be dummy features (also called 1-hot encoded variables, binary indicators,...), numerical features, etc., but not categorical ones.
+For the following features we provide additional information:
+
+
+school holiday: 
+0 = no school holiday
+1 = school holiday 
+
+
+
+bank holiday:
+0 = no bank holiday
+1 = bank holiday 
+
+
+Additionally, daily weather data for the location of the shopping attraction is provided.
+
+
+The task is to predict the column called 'label' for the test set.
+We will measure the prediction error using the (root-)mean-squared error ((R)MSE) metric.
+You may use any programming language and freely available libraries to solve this task.
+
+
+Please provide your (commented) source code, a report of your approach written in text (Word or LaTeX) or PowerPoint slides, where you describe in your own words:
+* The used libraries and a short instruction how to run your code
+* An export (e.g. HTML, PDF) with the output of your code or notebook/report (if you used e.g. jupyter/knitr)
+* How and why you possibly transformed the data
+* The approaches used to analyze and predict the daily visitors
+* The evaluation as well as a comparison with a base-line approach
+* The time you spend for solving the task (Do not spend more than 10 hours!)
+Please sent your final predictions of the test set (as csv file containing only the date and label column). Please make sure that your final prediction contains an entry for every day (resulting in 363 predictions in total) and that the date column is formated as Year-Month-Day (e.g. 2015-09-25; in python: %Y-%m-%d).
+
+Hint: An appropriate baseline will give an RMSE of approx. 500.
+
+
+
+Feel free to contact us in case of questions regarding the data set.
