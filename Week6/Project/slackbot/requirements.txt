@@ -1,5 +1,0 @@
-SQLAlchemy
-psycopg2
-python-decouple
-requests
-pyjokes
