@@ -1,4 +1,5 @@
 import logging
+from webbrowser import get
 import pandas as pd
 import numpy as np
 logging.getLogger().setLevel(logging.DEBUG)
@@ -76,9 +77,7 @@ def get_customer_transitions(df, customer_id):
 
     return minute_transistions
 
-
-def get_transistion_matrix(day_dfs):
-
+def get_cleaned_df(day_dfs) :
     n_customers = 0
     for df in day_dfs:
         n_customers += len(df['customer_no'].unique())
@@ -102,6 +101,13 @@ def get_transistion_matrix(day_dfs):
     customers_column.name = "customer_no"
     all_days_df.update(customers_column)
 
+    return all_days_df
+
+
+def get_transistions_df(day_dfs):
+
+    all_days_df = get_cleaned_df(day_dfs)
+
     logging.info(all_days_df)
 
     overall_transistions = pd.DataFrame()
@@ -118,7 +124,16 @@ def get_transistion_matrix(day_dfs):
         # states.dropna(inplace=True)
         overall_transistions = pd.concat([overall_transistions, states], ignore_index=True)
 
-    overall_transistions.dropna(inplace=True)
+    return overall_transistions.dropna(inplace=True)
 
+def get_transistion_matrix(day_dfs):
+    overall_transistions = get_transistions_df(day_dfs)
     return pd.crosstab(overall_transistions['section'], overall_transistions['section_next_minute'], normalize=0)
+
+
+def get_start_state_probabilities(days_dfs):
+    df = get_cleaned_df(days_dfs)
+    all_days_df_cust_no= df.reset_index().groupby(["customer_no"])["timestamp", "location"].first()
+    n_customers = len(all_days_df_cust_no)
+    return all_days_df_cust_no['location'].value_counts()/n_customers
     
