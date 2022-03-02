@@ -12,7 +12,6 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 if __name__ == '__main__':
 
-    transistion_matrix_path = f"{dir_path}/transistion_matrix"
     mon_df=pd.read_csv(f"{dir_path}/monday.csv",sep=";")
     tue_df=pd.read_csv(f"{dir_path}/tuesday.csv",sep=";")
     wed_df=pd.read_csv(f"{dir_path}/wednesday.csv",sep=";")
@@ -20,6 +19,7 @@ if __name__ == '__main__':
     fri_df=pd.read_csv(f"{dir_path}/friday.csv",sep=";")
     day_dfs = [mon_df, tue_df, wed_df, thu_df, fri_df]
 
+    transistion_matrix_path = f"{dir_path}/transistion_matrix"
     if(os.path.exists(transistion_matrix_path)):
         transistion_matrix = pickle.load(open(transistion_matrix_path, 'rb'))
     else :
@@ -37,13 +37,5 @@ if __name__ == '__main__':
         pd.to_datetime('2022-03-03 07:00:00'),
         pd.to_datetime('2022-03-03 08:00:00'))
 
-    supermarket.simulate()
-
-        
-    
-
-
-
-
-
+    supermarket.simulate(f'{dir_path}/simulate.csv')
 

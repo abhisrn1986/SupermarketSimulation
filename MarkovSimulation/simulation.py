@@ -1,11 +1,10 @@
+from random import randint
+import time
+from markow_chain import add_missing_checkouts
+
 import numpy as np
 import pandas as pd
 from sqlalchemy import false
-
-from random import randint
-import time
-
-
 class Customer :
     def __init__(self, id, state, transistion_matrix):
 
@@ -64,21 +63,45 @@ class Supermarket:
                 state = np.random.choice(self.first_state_probabilities.index, p = self.first_state_probabilities)
                 self.customers.append(Customer(self.last_id, state, self.transistion_matrix))
 
-        
-        return None
-
     def remove_exitsting_customers(self):
         customer_ids = []
         self.customers = [x for x in self.customers if x.is_active()]
-        return None
+    
+    def get_current_min_rows(self):
+        states = []
+        customer_nos = []
+        timestamps = []
+        for i, customer in enumerate(self.customers):
+            states.append(self.customers[i].state)
+            customer_nos.append(self.customers[i].id)
+            timestamps.append(self.current_time)
 
-    def simulate(self):
-        while(self.current_time != self.end_time):
-            self.print_customers()
-            self.remove_exitsting_customers()
-            self.next_minute()
-            self.add_new_customers()
-            time.sleep(1)
+        return pd.DataFrame({'timestamp':timestamps, 'customer_no':customer_nos, 'location':states})
+
+
+    def simulate(self, csv_file = '', quick = False):
+        df = pd.DataFrame(columns = ['timestamp', 'customer_no', 'location'])
+        try:
+            while(self.current_time != self.end_time):
+                self.print_customers()
+                df = pd.concat([df,self.get_current_min_rows()], ignore_index=True)
+                self.remove_exitsting_customers()
+                self.next_minute()
+                self.add_new_customers()
+
+                if(not quick):
+                    time.sleep(1)
+        except:
+            if(csv_file != ''):
+                df = add_missing_checkouts(df)
+                df.to_csv(csv_file)
+
+        
+        if(csv_file != ''):
+            df = add_missing_checkouts(df)
+            df.to_csv(csv_file)
+        
+
 
 
 
