@@ -24,14 +24,14 @@ if __name__ == '__main__':
     init_tile_pos = [0,7]
     market = SupermarketMap(MARKET, tiles)
 
-    mon_df=pd.read_csv(f"{dir_path}/monday.csv",sep=";")
-    tue_df=pd.read_csv(f"{dir_path}/tuesday.csv",sep=";")
-    wed_df=pd.read_csv(f"{dir_path}/wednesday.csv",sep=";")
-    thu_df=pd.read_csv(f"{dir_path}/thursday.csv",sep=";")
-    fri_df=pd.read_csv(f"{dir_path}/friday.csv",sep=";")
+    mon_df=pd.read_csv(f"{dir_path}/data/monday.csv",sep=";")
+    tue_df=pd.read_csv(f"{dir_path}/data/tuesday.csv",sep=";")
+    wed_df=pd.read_csv(f"{dir_path}/data/wednesday.csv",sep=";")
+    thu_df=pd.read_csv(f"{dir_path}/data/thursday.csv",sep=";")
+    fri_df=pd.read_csv(f"{dir_path}/data/friday.csv",sep=";")
     day_dfs = [mon_df, tue_df, wed_df, thu_df, fri_df]
 
-    transistion_matrix_path = f"{dir_path}/transistion_matrix"
+    transistion_matrix_path = f"{dir_path}/data/transistion_matrix"
     if(os.path.exists(transistion_matrix_path)):
         transistion_matrix = pickle.load(open(transistion_matrix_path, 'rb'))
     else :
