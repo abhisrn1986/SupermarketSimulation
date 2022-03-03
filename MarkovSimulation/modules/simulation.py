@@ -1,17 +1,36 @@
 from random import randint
 import time
-from markow_chain import add_missing_checkouts
+
+from pytest import Instance
+from .markow_chain import add_missing_checkouts
+from .tiles_skeleton import SupermarketMap, TILE_SIZE
 
 import numpy as np
 import pandas as pd
 from sqlalchemy import false
 class Customer :
-    def __init__(self, id, state, transistion_matrix):
 
+    def __init__(self, id, state, transistion_matrix):
         self.state = state
         self.id = id
         self.transistion_matrix = transistion_matrix
+        self.terrain = None
+        self.avatar = None
+        self.row = 0
+        self.col = 0
 
+    @classmethod
+    def first(cls, id, state, transistion_matrix, terrain, avatar, row, col):
+
+        instance = cls(id, state, transistion_matrix)
+        instance.state = state
+        instance.id = id
+        instance.transistion_matrix = transistion_matrix
+        instance.terrain = terrain
+        instance.avatar = avatar
+        instance.row = row
+        instance.col = col
+        return instance
 
     def next_state(self):
         if(self.is_active()):
@@ -25,6 +44,29 @@ class Customer :
 
     def __repr__(self):
         return f'<Customer {self.id} in {self.state}>'
+
+    def draw(self, frame):
+        if(self.terrain is not None and self.avatar is not None):
+            y = self.row * TILE_SIZE
+            x = self.col * TILE_SIZE
+            frame[y:y + self.avatar.shape[0], x:x + self.avatar.shape[1]] = self.avatar
+    
+    def move(self, direction):
+        new_row = self.row
+        new_col = self.col
+
+        if direction == 'up':
+            new_row -= 1
+        if direction == 'down':
+            new_row += 1
+        if direction == 'left':
+            new_col -= 1
+        if direction == 'right':
+            new_col += 1
+
+        if self.terrain.contents[new_row][new_col] == '.':
+            self.col = new_col
+            self.row = new_row
 
 class Supermarket:
     """manages multiple Customer instances that are currently in the market.
@@ -57,7 +99,7 @@ class Supermarket:
     def add_new_customers(self):
 
         if(len(self.customers) < 10):
-            n_new_customers = randint(0, 10)
+            n_new_customers = randint(5, 10)
             for i in range(n_new_customers):
                 self.last_id += 1
                 state = np.random.choice(self.first_state_probabilities.index, p = self.first_state_probabilities)
