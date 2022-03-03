@@ -1,13 +1,23 @@
-from random import randint
+import logging
 import time
-
-from pytest import Instance
-from .markow_chain import add_missing_checkouts
-from .tiles_skeleton import SupermarketMap, TILE_SIZE
+from random import randint
 
 import numpy as np
 import pandas as pd
+from pytest import Instance
 from sqlalchemy import false
+import cv2
+
+
+from .markow_chain import add_missing_checkouts
+from .tiles_skeleton import TILE_SIZE, SupermarketMap
+
+customer_icons_pos = [[4,1],[4,15],[5,15],[6,15],[7,15],[8,15],[11,15],[7,0]]
+customer_icons_length = len(customer_icons_pos)
+entrance_pos = [12,4]
+checkout_pos = [12,14]
+section_to_position = {'fruit': [1,5], 'dairy': [3,10], 'spices': [6,14], 'drinks':[8,18], 'checkout' : checkout_pos }
+
 class Customer :
 
     def __init__(self, id, state, transistion_matrix):
@@ -72,7 +82,8 @@ class Supermarket:
     """manages multiple Customer instances that are currently in the market.
     """
 
-    def __init__(self, customers, transistion_matrix, first_state_probabilities, start_time, end_time):        
+    def __init__(self, customers, transistion_matrix, first_state_probabilities, start_time, end_time, 
+                frame = None, terrain = None, tiles = None):        
         # a list of Customer objects
         self.customers = customers
         self.transistion_matrix = transistion_matrix
@@ -81,15 +92,16 @@ class Supermarket:
         self.end_time = end_time
         self.current_time = start_time
         self.last_id = max([x.id for x in customers])
+        self.frame = frame
+        self.terrain = terrain
+        self.tiles = tiles
 
     def __repr__(self):
         return ''
 
-
     def print_customers(self):
         for customer in self.customers:
             print(f"{customer} at {self.current_time}")
-        return None
 
     def next_minute(self):
         self.current_time += pd.Timedelta(1, 'm')
@@ -103,7 +115,15 @@ class Supermarket:
             for i in range(n_new_customers):
                 self.last_id += 1
                 state = np.random.choice(self.first_state_probabilities.index, p = self.first_state_probabilities)
-                self.customers.append(Customer(self.last_id, state, self.transistion_matrix))
+                if(self.frame is None):
+                    self.customers.append(Customer(self.last_id, state, self.transistion_matrix))
+                else:
+                    customer_icon_index = self.last_id%customer_icons_length
+                    y = customer_icons_pos[customer_icon_index][0] * TILE_SIZE
+                    x = customer_icons_pos[customer_icon_index][1] * TILE_SIZE
+                    self.customers.append(Customer.first(self.last_id, state, self.transistion_matrix, 
+                    self.terrain, self.tiles[y:y+TILE_SIZE, x:x+TILE_SIZE], entrance_pos[0],entrance_pos[1]))
+                    self.customers[-1].draw(self.frame)
 
     def remove_exitsting_customers(self):
         customer_ids = []
@@ -117,36 +137,41 @@ class Supermarket:
             states.append(self.customers[i].state)
             customer_nos.append(self.customers[i].id)
             timestamps.append(self.current_time)
+            if(self.frame is not None):
+                position = section_to_position[self.customers[i].state]
+                self.customers[i].row = position[0]
+                self.customers[i].col = position[1]
+                self.customers[i].draw(self.frame)
 
         return pd.DataFrame({'timestamp':timestamps, 'customer_no':customer_nos, 'location':states})
 
 
     def simulate(self, csv_file = '', quick = False):
         df = pd.DataFrame(columns = ['timestamp', 'customer_no', 'location'])
+        background = np.zeros((500, 704, 3), np.uint8)
         try:
             while(self.current_time != self.end_time):
+                self.frame = background.copy()
+                self.terrain.draw(self.frame)
                 self.print_customers()
+                key = cv2.waitKey(10)
                 df = pd.concat([df,self.get_current_min_rows()], ignore_index=True)
                 self.remove_exitsting_customers()
                 self.next_minute()
                 self.add_new_customers()
+                cv2.imshow("frame", self.frame)
+
+                if key == 113: # 'q' key
+                    break
 
                 if(not quick):
-                    time.sleep(1)
+                    time.sleep(2)
         except:
             if(csv_file != ''):
                 df = add_missing_checkouts(df)
                 df.to_csv(csv_file)
 
-        
+        cv2.destroyAllWindows()
         if(csv_file != ''):
             df = add_missing_checkouts(df)
             df.to_csv(csv_file)
-        
-
-
-
-
-
-
-
