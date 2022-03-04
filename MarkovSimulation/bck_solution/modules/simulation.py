@@ -1,7 +1,7 @@
 import logging
 import time
 import traceback
-from random import randint
+from random import randint, choice
 from matplotlib.pyplot import grid
 
 import numpy as np
@@ -20,6 +20,21 @@ entrance_pos = [10,4]
 checkout_pos = [10,14]
 section_to_position = {'fruit': [1,5], 'spices': [3,10], 'dairy': [6,14], 'drinks':[8,18], 'checkout' : checkout_pos , 'entrance': entrance_pos}
 
+def get_random_position(section):
+
+    if(section == 'fruit') :
+        return [randint(1,6), choice([3,6])]
+    if(section == 'spices') :
+        return [randint(1,6), choice([7,10])]
+    if(section == 'dairy') :
+        return [randint(1,6), choice([11,14])]
+    if(section == 'drinks') :
+        return [randint(1,6), choice([15,18])]
+    if(section == 'entrance'):
+        return entrance_pos
+    if(section == 'checkout'):
+        return checkout_pos
+    
 
 def get_grid(grid_string):
     row_strings = grid_string.split('\n')
@@ -194,7 +209,8 @@ class Supermarket:
             
     def calculate_paths(self):
         for i_customer, customer in enumerate(self.customers):
-            end_pos = tuple(section_to_position[customer.state])
+            # end_pos = tuple(section_to_position[customer.state])
+            end_pos = tuple(get_random_position(customer.state))
             start_pos = (customer.row, customer.col)
             self.customers[i_customer].path = np.array(get_path(self.grid, start_pos, end_pos))
             
