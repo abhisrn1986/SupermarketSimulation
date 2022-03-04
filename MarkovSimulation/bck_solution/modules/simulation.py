@@ -1,6 +1,7 @@
 import logging
 import time
 from random import randint
+from matplotlib.pyplot import grid
 
 import numpy as np
 import pandas as pd
@@ -10,13 +11,31 @@ import cv2
 
 
 from .markow_chain import add_missing_checkouts
-from .tiles_skeleton import TILE_SIZE, SupermarketMap
+from .tiles_skeleton import TILE_SIZE, SupermarketMap, MARKET
+from .a_star import find_path
 
 customer_icons_pos = [[4,1],[4,15],[5,15],[6,15],[7,15],[8,15],[11,15],[7,0]]
 customer_icons_length = len(customer_icons_pos)
-entrance_pos = [12,4]
-checkout_pos = [12,14]
-section_to_position = {'fruit': [1,5], 'dairy': [3,10], 'spices': [6,14], 'drinks':[8,18], 'checkout' : checkout_pos }
+entrance_pos = [10,4]
+checkout_pos = [10,14]
+section_to_position = {'fruit': [1,5], 'spices': [3,10], 'dairy': [6,14], 'drinks':[8,18], 'checkout' : checkout_pos }
+
+def get_grid(grid_string):
+    row_strings = grid_string.split('\n')
+
+    n_rows = len(row_strings)
+    n_cols = len(row_strings[0])
+    grid = np.ones((n_rows, n_cols), dtype=int)
+    
+    for row, s in enumerate(row_strings):
+        for col, c in enumerate(s):
+            if(c == '.'):
+                grid[row,col] = 0
+    return grid
+    
+def get_path(grid, start, end):
+    possible_moves = [(0,1),(0,-1),(1,0),(-1,0),(1,1),(1,-1),(-1,1),(-1,-1)]
+    return find_path(grid, start, end, possible_moves)
 
 class Customer :
 
@@ -28,6 +47,8 @@ class Customer :
         self.avatar = None
         self.row = 0
         self.col = 0
+        self.path = np.array([])
+        self.grid = None
 
     @classmethod
     def first(cls, id, state, transistion_matrix, terrain, avatar, row, col):
@@ -40,10 +61,13 @@ class Customer :
         instance.avatar = avatar
         instance.row = row
         instance.col = col
+        instance.path = np.array([])
+        instance.grid = get_grid(terrain.layout)
         return instance
 
     def next_state(self):
         if(self.is_active()):
+            self.prev_state = self.state
             self.state = np.random.choice(self.transistion_matrix.columns, p = self.transistion_matrix.loc[self.state])
         return self.state
 
@@ -60,7 +84,15 @@ class Customer :
             y = self.row * TILE_SIZE
             x = self.col * TILE_SIZE
             frame[y:y + self.avatar.shape[0], x:x + self.avatar.shape[1]] = self.avatar
-    
+
+    def next_node(self) :
+        if(np.size(self.path) != 0):
+            self.path = self.path[1:]
+            if(np.size(self.path) != 0):
+                node = self.path[0]
+                self.row = node[0]
+                self.col = node[1]
+        
     def move(self, direction):
         new_row = self.row
         new_col = self.col
@@ -102,6 +134,11 @@ class Supermarket:
     def print_customers(self):
         for customer in self.customers:
             print(f"{customer} at {self.current_time}")
+    
+    def draw_customers(self):
+        for customer in self.customers:
+            customer.next_node()
+            customer.draw(self.frame)
 
     def next_minute(self):
         self.current_time += pd.Timedelta(1, 'm')
@@ -110,8 +147,8 @@ class Supermarket:
     
     def add_new_customers(self):
 
-        if(len(self.customers) < 10):
-            n_new_customers = randint(5, 10)
+        if(len(self.customers) < 2):
+            n_new_customers = randint(1, 2)
             for i in range(n_new_customers):
                 self.last_id += 1
                 state = np.random.choice(self.first_state_probabilities.index, p = self.first_state_probabilities)
@@ -144,34 +181,74 @@ class Supermarket:
                 self.customers[i].draw(self.frame)
 
         return pd.DataFrame({'timestamp':timestamps, 'customer_no':customer_nos, 'location':states})
+    
 
+    def calculate_paths(self, timesteps):
+        for i_customer, customer in enumerate(self.customers):
+            end_pos = tuple(section_to_position[customer.state])
+            start_pos = (customer.row, customer.col)
+            path = np.array(get_path(self.grid, start_pos, end_pos))
+            jump = int(path.shape[0]/timesteps)
+            if jump == 0:
+                self.customers[i_customer].path = path[-1:]
+            else:
+                self.customers[i_customer].path = np.concatenate([path[0::jump],path[-1:]])
+            
 
     def simulate(self, csv_file = '', quick = False):
         df = pd.DataFrame(columns = ['timestamp', 'customer_no', 'location'])
         background = np.zeros((500, 704, 3), np.uint8)
+
+        self.grid = get_grid(MARKET)
+
+        print(self.grid)
+        
+        # number of seconds timestep
+        timestep = 10
+        max_total_timestep_count = int(60/timestep)
+        timestep_count = max_total_timestep_count
+        self.print_customers()
+        self.frame = background.copy()
+        self.terrain.draw(self.frame)
+        key = cv2.waitKey(1)
+        df = pd.concat([df,self.get_current_min_rows()], ignore_index=True)
+        self.draw_customers()
+        cv2.imshow("frame", self.frame)
+        self.next_minute()
+
+
         try:
             while(self.current_time != self.end_time):
                 self.frame = background.copy()
                 self.terrain.draw(self.frame)
-                self.print_customers()
                 key = cv2.waitKey(10)
                 df = pd.concat([df,self.get_current_min_rows()], ignore_index=True)
-                self.remove_exitsting_customers()
-                self.next_minute()
-                self.add_new_customers()
+                self.draw_customers()
                 cv2.imshow("frame", self.frame)
+
+                if(max_total_timestep_count == timestep_count):
+                    self.add_new_customers()
+                    self.print_customers()
+                    self.remove_exitsting_customers()
+                    self.next_minute()
+                    self.calculate_paths(max_total_timestep_count)
+                    timestep_count = 0
 
                 if key == 113: # 'q' key
                     break
 
                 if(not quick):
-                    time.sleep(2)
+                    time.sleep(1)
+                
+                timestep_count += 1  
         except:
+            cv2.destroyAllWindows()
             if(csv_file != ''):
                 df = add_missing_checkouts(df)
                 df.to_csv(csv_file)
 
         cv2.destroyAllWindows()
+
         if(csv_file != ''):
             df = add_missing_checkouts(df)
             df.to_csv(csv_file)

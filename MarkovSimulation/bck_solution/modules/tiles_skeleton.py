@@ -29,6 +29,7 @@ class SupermarketMap:
         tiles   : a numpy array containing all the tile images
         """
         self.tiles = tiles
+        self.layout = layout
         # split the layout string into a two dimensional matrix
         self.contents = [list(row) for row in layout.split("\n")]
         self.ncols = len(self.contents[0])
