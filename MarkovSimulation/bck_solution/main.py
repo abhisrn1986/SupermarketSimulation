@@ -49,15 +49,15 @@ if __name__ == '__main__':
 
     # Add the customers
     init_tile_pos = simulation.entrance_pos
-    starting_customers = [simulation.Customer.first(1, 'fruit', transistion_matrix, market, avatars[0], init_tile_pos[0], init_tile_pos[1]), 
-        simulation.Customer.first(2, 'dairy', transistion_matrix, market, avatars[1], init_tile_pos[0], init_tile_pos[1]), 
-        simulation.Customer.first(3, 'spices', transistion_matrix, market, avatars[2], init_tile_pos[0], init_tile_pos[1])]
+    starting_customers = [simulation.Customer.first(1, 'entrance', transistion_matrix, start_state_probabilities, market, avatars[0], init_tile_pos[0], init_tile_pos[1]), 
+        simulation.Customer.first(2, 'entrance', transistion_matrix, start_state_probabilities, market, avatars[1], init_tile_pos[0], init_tile_pos[1]), 
+        simulation.Customer.first(3, 'entrance', transistion_matrix, start_state_probabilities, market, avatars[2], init_tile_pos[0], init_tile_pos[1])]
 
     # Create a supermarket simulator from time 2022-03-03 07:00:00 to 2022-03-03 08:00:00
     supermarket = simulation.Supermarket(starting_customers, transistion_matrix,
                                         start_state_probabilities,
                                         pd.to_datetime('2022-03-03 07:00:00'),
-                                        pd.to_datetime('2022-03-03 08:00:00'),frame,market, tiles)
+                                        pd.to_datetime('2022-03-03 08:00:00'),3,frame,market, tiles)
 
     # Run the above simulator
     supermarket.simulate(f'{dir_path}/simulate.csv')
