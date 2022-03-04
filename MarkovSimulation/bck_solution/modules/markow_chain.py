@@ -37,11 +37,6 @@ def customer_total_revenue(df, customer_id, revenue_per_minute) :
     return customer_df[['location', 'location_time_spent']][:-1].groupby("location").sum().apply(lambda x : revenue_per_minute.loc[x.name]['revenue_per_min'] * x, axis=1)
 
 
-import logging
-
-logging.getLogger().setLevel(logging.INFO)
-
-
 def get_customer_transitions(df, customer_id):
     customer_transitions = df.loc[customer_id == df['customer_no']].sort_values(by=['timestamp'])
 
@@ -90,7 +85,6 @@ def get_cleaned_df(day_dfs) :
 
     all_days_df["timestamp"] = pd.to_datetime(all_days_df["timestamp"])
     all_days_df['weekday'] = all_days_df['timestamp'].dt.weekday
-
 
     # add ids of the customers
     max_customer_numbers = all_days_df.groupby(['weekday'])['customer_no'].max()

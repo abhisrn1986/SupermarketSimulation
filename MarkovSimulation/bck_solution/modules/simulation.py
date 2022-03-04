@@ -20,6 +20,7 @@ entrance_pos = [10,4]
 checkout_pos = [10,14]
 section_to_position = {'fruit': [1,5], 'spices': [3,10], 'dairy': [6,14], 'drinks':[8,18], 'checkout' : checkout_pos , 'entrance': entrance_pos}
 
+
 def get_grid(grid_string):
     row_strings = grid_string.split('\n')
 
@@ -54,7 +55,6 @@ class Customer :
 
     @classmethod
     def first(cls, id, state, transistion_matrix, start_probabilities, terrain, avatar, row, col):
-
         instance = cls(id, state, transistion_matrix, start_probabilities)
         instance.state = state
         instance.id = id
@@ -92,12 +92,6 @@ class Customer :
             frame[y:y + self.avatar.shape[0], x:x + self.avatar.shape[1]] = self.avatar
 
     def next_node(self) :
-        # if(np.size(self.path) != 0):
-        #     self.path = self.path[1:]
-        #     if(np.size(self.path) != 0):
-        #         node = self.path[0]
-        #         self.row = node[0]
-        #         self.col = node[1]
         if(np.size(self.path) != 0 and np.size(self.path[1:]) != 0):
             self.row = self.path[1][0]
             self.col = self.path[1][1]
@@ -187,11 +181,6 @@ class Supermarket:
             states.append(self.customers[i].state)
             customer_nos.append(self.customers[i].id)
             timestamps.append(self.current_time)
-            # if(self.frame is not None):
-            #     position = section_to_position[self.customers[i].state]
-            #     self.customers[i].row = position[0]
-            #     self.customers[i].col = position[1]
-            #     self.customers[i].draw(self.frame)
 
         return pd.DataFrame({'timestamp':timestamps, 'customer_no':customer_nos, 'location':states})
     

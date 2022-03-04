@@ -11,9 +11,7 @@ import modules.simulation as simulation
 import cv2
 from modules.tiles_skeleton import SupermarketMap, MARKET, TILE_SIZE
 
-
 dir_path = os.path.dirname(os.path.realpath(__file__))
-
 
 if __name__ == '__main__':
 
@@ -51,13 +49,15 @@ if __name__ == '__main__':
     init_tile_pos = simulation.entrance_pos
     starting_customers = [simulation.Customer.first(1, 'entrance', transistion_matrix, start_state_probabilities, market, avatars[0], init_tile_pos[0], init_tile_pos[1]), 
         simulation.Customer.first(2, 'entrance', transistion_matrix, start_state_probabilities, market, avatars[1], init_tile_pos[0], init_tile_pos[1]), 
-        simulation.Customer.first(3, 'entrance', transistion_matrix, start_state_probabilities, market, avatars[2], init_tile_pos[0], init_tile_pos[1])]
+        simulation.Customer.first(3, 'entrance', transistion_matrix, start_state_probabilities, market, avatars[2], init_tile_pos[0], init_tile_pos[1]),
+        simulation.Customer.first(4, 'entrance', transistion_matrix, start_state_probabilities, market, avatars[2], init_tile_pos[0], init_tile_pos[1]),
+        simulation.Customer.first(5, 'entrance', transistion_matrix, start_state_probabilities, market, avatars[2], init_tile_pos[0], init_tile_pos[1])]
 
     # Create a supermarket simulator from time 2022-03-03 07:00:00 to 2022-03-03 08:00:00
     supermarket = simulation.Supermarket(starting_customers, transistion_matrix,
                                         start_state_probabilities,
                                         pd.to_datetime('2022-03-03 07:00:00'),
-                                        pd.to_datetime('2022-03-03 08:00:00'),3,frame,market, tiles)
+                                        pd.to_datetime('2022-03-03 08:00:00'),5,frame,market, tiles)
 
     # Run the above simulator
     supermarket.simulate(f'{dir_path}/simulate.csv')
